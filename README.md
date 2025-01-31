@@ -1,1 +1,1 @@
-# log
+This library is the result of years of incremental changes and indescision. I have used some iteration of this for countless projects, almost never leaving it alone. I finally decided to unify everything into one consistent header-only library. This is by and far not the best way to log, nor the fastest, but it's convienent and I like it.
