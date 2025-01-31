@@ -5,7 +5,6 @@
 */
 
 #pragma once
-#include "pch.h"
 
 #define USE_CONSOLE true
 #define USE_OBF false
