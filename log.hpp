@@ -5,6 +5,7 @@
 */
 
 #pragma once
+#include <windows.h>
 
 #define USE_CONSOLE true
 #define USE_OBF false
@@ -48,7 +49,7 @@ namespace logger
 				const wchar_t* colorCode = get_color_code(color);
 				wprintf(x_x_(L"%s %s %c "), colorCode, prefix, 16);
 				wprintf(x_x_(L"\x1B[0m"));
-				wprintf(format, args...);
+				wprintf(format, process_arg(std::forward<Args>(args))...);
 				wprintf(x_x_(L"\n"));
 			}
 			else
@@ -56,7 +57,7 @@ namespace logger
 				SetConsoleTextAttribute(console_hdl, color);
 				wprintf(x_x_(L"%s "), prefix);
 				SetConsoleTextAttribute(console_hdl, console_saved_attrs);
-				wprintf(format, args...);
+				wprintf(format, process_arg(std::forward<Args>(args))...);
 				wprintf(x_x_(L"\n"));
 			}
 		}
@@ -83,131 +84,153 @@ namespace logger
 			return std::wstring(str.begin(), str.end());
 		}
 
+		template <typename T>
+		decltype(auto) process_arg(T&& arg)
+		{
+			if constexpr (
+				std::is_same_v<std::decay_t<T>, char*> ||
+				std::is_same_v<std::decay_t<T>, const char*> ||
+				std::is_same_v<std::decay_t<T>, std::string>)
+			{
+				return s2ws(std::forward<T>(arg)).c_str();
+			}
+			else if constexpr (
+				std::is_same_v<std::decay_t<T>, std::wstring>
+				)
+			{
+				return std::forward<T>(arg).c_str();
+			}
+			else
+			{
+				return std::forward<T>(arg);
+			}
+		}
+
 	public:
 		template <typename... Args>
-		void log(const wchar_t* format, Args... args)
+		void log(const wchar_t* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"+"), 1, format, args...);
+			log_with_color(x_x_(L"+"), 1, format, process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void log(const char* format, Args... args)
+		void log(const char* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"+"), 1, s2ws(format).c_str(), args...);
+			log_with_color(x_x_(L"+"), 1, s2ws(format).c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void log(const std::string& format, Args... args)
+		void log(const std::string& format, Args&&... args)
 		{
-			log_with_color(x_x_(L"+"), 1, s2ws(format).c_str(), args...);
+			log_with_color(x_x_(L"+"), 1, s2ws(format).c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void log(const std::wstring& format, Args... args)
+		void log(const std::wstring& format, Args&&... args)
 		{
-			log_with_color(x_x_(L"+"), 1, format.c_str(), args...);
+			log_with_color(x_x_(L"+"), 1, format.c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void info(const wchar_t* format, Args... args)
+		void info(const wchar_t* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, format, args...);
+			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, format, process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void info(const char* format, Args... args)
+		void info(const char* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(), args...);
+			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void info(const std::string& format, Args... args)
+		void info(const std::string& format, Args&&... args)
 		{
-			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(), args...);
+			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void info(const std::wstring& format, Args... args)
+		void info(const std::wstring& format, Args&&... args)
 		{
-			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, format.c_str(), args...);
+			log_with_color(x_x_(L"i"), FOREGROUND_GREEN | FOREGROUND_INTENSITY, format.c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void err(const wchar_t* format, Args... args)
+		void err(const wchar_t* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, format, args...);
+			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, format, process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void err(const char* format, Args... args)
+		void err(const char* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, s2ws(format).c_str(), args...);
+			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, s2ws(format).c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void err(const std::string& format, Args... args)
+		void err(const std::string& format, Args&&... args)
 		{
-			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, s2ws(format).c_str(), args...);
+			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, s2ws(format).c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void err(const std::wstring& format, Args... args)
+		void err(const std::wstring& format, Args&&... args)
 		{
-			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, format.c_str(), args...);
+			log_with_color(x_x_(L"x"), FOREGROUND_RED | FOREGROUND_INTENSITY, format.c_str(), process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void warn(const wchar_t* format, Args... args)
+		void warn(const wchar_t* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"!"), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, format, args...);
+			log_with_color(x_x_(L"!"), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, format, process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void warn(const char* format, Args... args)
-		{
-			log_with_color(x_x_(L"!"), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(),
-				args...);
-		}
-
-		template <typename... Args>
-		void warn(const std::string& format, Args... args)
+		void warn(const char* format, Args&&... args)
 		{
 			log_with_color(x_x_(L"!"), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(),
-				args...);
+				process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void warn(const std::wstring& format, Args... args)
+		void warn(const std::string& format, Args&&... args)
+		{
+			log_with_color(x_x_(L"!"), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, s2ws(format).c_str(),
+				process_arg(std::forward<Args>(args))...);
+		}
+
+		template <typename... Args>
+		void warn(const std::wstring& format, Args&&... args)
 		{
 			log_with_color(x_x_(L"!"), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, format.c_str(),
-				args...);
+				process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void special(const wchar_t* format, Args... args)
+		void special(const wchar_t* format, Args&&... args)
 		{
-			log_with_color(x_x_(L"~"), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, format, args...);
+			log_with_color(x_x_(L"~"), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, format, process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void special(const char* format, Args... args)
-		{
-			log_with_color(x_x_(L"~"), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, s2ws(format).c_str(),
-				args...);
-		}
-
-		template <typename... Args>
-		void special(const std::string& format, Args... args)
+		void special(const char* format, Args&&... args)
 		{
 			log_with_color(x_x_(L"~"), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, s2ws(format).c_str(),
-				args...);
+				process_arg(std::forward<Args>(args))...);
 		}
 
 		template <typename... Args>
-		void special(const std::wstring& format, Args... args)
+		void special(const std::string& format, Args&&... args)
+		{
+			log_with_color(x_x_(L"~"), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, s2ws(format).c_str(),
+				process_arg(std::forward<Args>(args))...);
+		}
+
+		template <typename... Args>
+		void special(const std::wstring& format, Args&&... args)
 		{
 			log_with_color(x_x_(L"~"), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, format.c_str(),
-				args...);
+				process_arg(std::forward<Args>(args))...);
 		}
 
 		void init()
